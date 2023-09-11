@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 
 from google.cloud import bigquery, storage
 from google.oauth2 import service_account
@@ -83,6 +84,11 @@ def _extract_data_from_postgres(**context):
         for row in results:
             csvwriter.writerow(row)
 
+    # Validate if data is alread extracted
+    if os.path.isfile(f"{DAG_FOLDER}/{DATA}.csv") and os.stat(f"{DAG_FOLDER}/{DATA}.csv").st_size != 0:
+        return "load_data_to_gcs"
+    else:
+        return "do_nothing"
 
 ## Define DAGS
 # https://airflow.apache.org/docs/apache-airflow/1.10.12/tutorial.html
@@ -104,10 +110,14 @@ with DAG(
     
     start = EmptyOperator(task_id="start")
 
-    extract_movements_from_postgres = PythonOperator(
+    extract_movements_from_postgres = BranchPythonOperator(
                 task_id=f"extract_{DATA}_from_postgres",
                 python_callable=_extract_data_from_postgres
             )
 
+    do_nothing = EmptyOperator(task_id="do_nothing")
+
+    
     # task dependencies
     start >> extract_movements_from_postgres
+    extract_movements_from_postgres >> do_nothing
