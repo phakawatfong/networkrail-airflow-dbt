@@ -21,7 +21,7 @@ CONFIG_FOLDER = '/opt/airflow/env_conf'
 
 # setup google-cloud connection and configuration
 DATA = 'movements'
-BUSINESS_DOMAIN = 'networkrail-airflow'
+BUSINESS_DOMAIN = 'networkrail_airflow'
 PROJECT_ID = 'networkrail-airflow-dbt'
 GCS_BUCKET = 'networkrail_bucket'
 BIGQUERY_DATASET = 'networkrail'
@@ -29,6 +29,8 @@ LOCATION = 'asia-southeast1'
 GCS_SERVICE_ACCOUNT_FILE = f'{CONFIG_FOLDER}/networkrail-airflow-dbt-load-data-to-gcs.json'
 BIGQUERY_SERVICE_ACCOUNT_FILE = f'{CONFIG_FOLDER}/networkrail-airflow-dbt-get-gcs-data-then-load-to-bq.json'
 
+
+# Define Header for .csv file
 header = [
     "event_type",
     "gbtt_timestamp",
@@ -61,10 +63,45 @@ header = [
     "line_ind",
 ]
 
+# https://cloud.google.com/bigquery/docs/schemas
+# predefined Bigquery Schema for NetworkRail.
+bigquery_schema = [
+    bigquery.SchemaField("event_type", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("gbtt_timestamp", bigquery.enums.SqlTypeNames.TIMESTAMP),
+    bigquery.SchemaField("original_loc_stanox", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("planned_timestamp", bigquery.enums.SqlTypeNames.TIMESTAMP),
+    bigquery.SchemaField("timetable_variation", bigquery.enums.SqlTypeNames.INTEGER),
+    bigquery.SchemaField("original_loc_timestamp", bigquery.enums.SqlTypeNames.TIMESTAMP),
+    bigquery.SchemaField("current_train_id", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("delay_monitoring_point", bigquery.enums.SqlTypeNames.BOOLEAN),
+    bigquery.SchemaField("next_report_run_time", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("reporting_stanox", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("actual_timestamp", bigquery.enums.SqlTypeNames.TIMESTAMP),
+    bigquery.SchemaField("correction_ind", bigquery.enums.SqlTypeNames.BOOLEAN),
+    bigquery.SchemaField("event_source", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("train_file_address", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("platform", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("division_code", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("train_terminated", bigquery.enums.SqlTypeNames.BOOLEAN),
+    bigquery.SchemaField("train_id", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("offroute_ind", bigquery.enums.SqlTypeNames.BOOLEAN),
+    bigquery.SchemaField("variation_status", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("train_service_code", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("toc_id", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("loc_stanox", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("auto_expected", bigquery.enums.SqlTypeNames.BOOLEAN),
+    bigquery.SchemaField("direction_ind", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("route", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("planned_event_type", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("next_report_stanox", bigquery.enums.SqlTypeNames.STRING),
+    bigquery.SchemaField("line_ind", bigquery.enums.SqlTypeNames.STRING),
+]
+
 def _extract_data_from_postgres(**context):
 
     # https://airflow.apache.org/docs/apache-airflow/stable/templates-ref.html#templates-variables
     ds = context["data_interval_start"].to_date_string()
+    # ds = '2023-09-10'
 
     # https://airflow.apache.org/docs/apache-airflow-providers-postgres/stable/_modules/airflow/providers/postgres/hooks/postgres.html#PostgresHook.schema
     pg_hook = PostgresHook(
@@ -105,14 +142,14 @@ def _extract_data_from_postgres(**context):
 def _load_data_to_gcs(**context):
 
     ds = context["data_interval_start"].to_date_string()
-
-    # gs://networkrail_bucket
-    source_file_name = f"{DATA_FOLDER}/{DATA}-{ds}.csv"
-    destination_blob_name = f"{BUSINESS_DOMAIN}/{DATA}/{DATA}-{ds}.csv"
+    # ds = '2023-09-10'
 
     # https://google-auth.readthedocs.io/en/master/reference/google.oauth2.service_account.html
     service_account_info_gcs = json.load(open(GCS_SERVICE_ACCOUNT_FILE))
     credentials_gcs = service_account.Credentials.from_service_account_info(service_account_info_gcs)
+
+    source_file_name = f"{DATA_FOLDER}/{DATA}-{ds}.csv"
+    destination_blob_name = f"{BUSINESS_DOMAIN}/{DATA}/{DATA}-{ds}.csv"
 
     # https://cloud.google.com/storage/docs/uploading-objects#permissions-client-libraries
     storage_client = storage.Client(project=PROJECT_ID, credentials=credentials_gcs)
@@ -127,6 +164,40 @@ def _load_data_to_gcs(**context):
     )
 
 
+def _get_data_from_gcs_then_load_to_bg(**context):
+    
+    ds = context["data_interval_start"].to_date_string()
+    # ds = '2023-09-10'
+
+    service_account_info_bq = json.load(open(BIGQUERY_SERVICE_ACCOUNT_FILE))
+    credentials_bq = service_account.Credentials.from_service_account_info(service_account_info_bq)
+
+    bigquery_client = bigquery.Client(project=PROJECT_ID, credentials=credentials_bq)
+
+    # https://github.com/googleapis/python-bigquery/blob/35627d145a41d57768f19d4392ef235928e00f72/samples/client_load_partitioned_table.py
+    job_config = bigquery.LoadJobConfig(
+                schema = bigquery_schema,
+                write_disposition = bigquery.WriteDisposition.WRITE_APPEND,
+                skip_leading_rows=1,
+                source_format=bigquery.SourceFormat.CSV,
+                time_partitioning=bigquery.TimePartitioning(
+                    type_=bigquery.TimePartitioningType.DAY,
+                    field="actual_timestamp",  # Name of the column to use for partitioning.
+                    ),
+            )
+
+    # gs://networkrail_bucket/networkrail-airflow/networkrail/<DATA>.csv
+    table_id = f"{PROJECT_ID}.{BUSINESS_DOMAIN}.{DATA}"
+    uri = f"gs://{GCS_BUCKET}/{BUSINESS_DOMAIN}/{DATA}/{DATA}-{ds}.csv"
+
+    load_job = bigquery_client.load_table_from_uri(
+        uri, table_id, job_config=job_config
+    ) # Make an API request.
+
+    load_job.result()  # Waits for the job to complete.
+
+    destination_table = bigquery_client.get_table(table_id)  # Make an API request.
+    print("Loaded {} rows.".format(destination_table.num_rows))
 
 
 ## Define DAGS
@@ -162,8 +233,14 @@ with DAG(
                 task_id = f"load_{DATA}_to_gcs",
                 python_callable=_load_data_to_gcs,
             )
+    
+    get_data_from_google_cloud_storage_then_load_to_bigquery = PythonOperator(
+                task_id = f"get_{DATA}_from_google_cloud_storage_thne_load_to_bigquery",
+                python_callable=_get_data_from_gcs_then_load_to_bg,
+    )
 
+    end = EmptyOperator(task_id="end", trigger_rule="one_success")
     
     # task dependencies
-    start >> extract_data_from_postgres >> load_data_to_google_cloud_storage
-    extract_data_from_postgres >> do_nothing
+    start >> extract_data_from_postgres >> load_data_to_google_cloud_storage >> get_data_from_google_cloud_storage_then_load_to_bigquery >> end
+    extract_data_from_postgres >> do_nothing >> end
