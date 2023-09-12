@@ -51,6 +51,13 @@ airflow dags backfill -s <START_PERIOD> -e <END_PERIOD> <DAG_NAME>
 ```
 
 I ran this below command, in order to perform backfill while run dags
+
 ```
 airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project
+```
+
+add this option to rerun backfill dag
+
+```
+airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project --reset-dagruns
 ```
