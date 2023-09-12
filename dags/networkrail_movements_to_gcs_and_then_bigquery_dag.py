@@ -63,6 +63,9 @@ header = [
 
 def _extract_data_from_postgres(**context):
 
+    # https://airflow.apache.org/docs/apache-airflow/stable/templates-ref.html#templates-variables
+    ds = context["data_interval_start"].to_date_string()
+
     # https://airflow.apache.org/docs/apache-airflow-providers-postgres/stable/_modules/airflow/providers/postgres/hooks/postgres.html#PostgresHook.schema
     pg_hook = PostgresHook(
         postgres_conn_id='networkrail_postgres_conn',
@@ -72,29 +75,35 @@ def _extract_data_from_postgres(**context):
     connection = pg_hook.get_conn()
     cursor = connection.cursor()
 
-    sql = f" select * from {DATA}"
+    sql = f" select * from {DATA} where date(actual_timestamp) = '{ds}' "
 
     cursor.execute(sql)
     results = cursor.fetchall()
 
     # write result to file
-    with open(f"{DATA_FOLDER}/{DATA}.csv", "w") as csvfile:
+    with open(f"{DATA_FOLDER}/{DATA}-{ds}.csv", "w") as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         csvwriter.writerow(header)
         for row in results:
             csvwriter.writerow(row)
 
     # Validate if data is alread extracted
-    if os.path.isfile(f"{DAG_FOLDER}/{DATA}.csv") and os.stat(f"{DAG_FOLDER}/{DATA}.csv").st_size != 0:
+    if os.path.isfile(f"{DAG_FOLDER}/{DATA}-{ds}.csv") and os.stat(f"{DAG_FOLDER}/{DATA}-{ds}.csv").st_size != 0:
         return "load_data_to_gcs"
     else:
         return "do_nothing"
+
+
+# def _load_data_to_gcs(**context):
+
+#     service_account_info_gcs = json.load(open())
+
 
 ## Define DAGS
 # https://airflow.apache.org/docs/apache-airflow/1.10.12/tutorial.html
 default_args = {
     'owner': 'kids pkf',
-    'start_date': timezone.datetime(2023, 9, 11),
+    'start_date': timezone.datetime(2023, 5, 1),
     'email': ['phakawat.fongchai.code@gmail.com'],
     'email_on_failure': False,
     'email_on_retry': False,
