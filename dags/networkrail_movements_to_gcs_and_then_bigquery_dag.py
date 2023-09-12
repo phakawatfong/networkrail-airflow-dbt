@@ -87,16 +87,46 @@ def _extract_data_from_postgres(**context):
         for row in results:
             csvwriter.writerow(row)
 
+    with open(f"{DATA_FOLDER}/{DATA}-{ds}.csv", 'r') as fp:
+        lines = len(fp.readlines())
+        print('Total Number of lines:', lines)
+
     # Validate if data is alread extracted
-    if os.path.isfile(f"{DAG_FOLDER}/{DATA}-{ds}.csv") and os.stat(f"{DAG_FOLDER}/{DATA}-{ds}.csv").st_size != 0:
-        return "load_data_to_gcs"
+    check_if_file_exists = os.path.isfile(f"{DATA_FOLDER}/{DATA}-{ds}.csv")
+    print(f"Check if '{DATA}-{ds}.csv' exists: {check_if_file_exists}")
+
+    # if os.path.isfile(f"{DAG_FOLDER}/{DATA}-{ds}.csv") and os.stat(f"{DAG_FOLDER}/{DATA}-{ds}.csv").st_size != 0:
+    if check_if_file_exists and lines > 1:
+        return f"load_{DATA}_to_gcs"
     else:
         return "do_nothing"
 
 
-# def _load_data_to_gcs(**context):
+def _load_data_to_gcs(**context):
 
-#     service_account_info_gcs = json.load(open())
+    ds = context["data_interval_start"].to_date_string()
+
+    # gs://networkrail_bucket
+    source_file_name = f"{DATA_FOLDER}/{DATA}-{ds}.csv"
+    destination_blob_name = f"{BUSINESS_DOMAIN}/{DATA}/{DATA}-{ds}.csv"
+
+    # https://google-auth.readthedocs.io/en/master/reference/google.oauth2.service_account.html
+    service_account_info_gcs = json.load(open(GCS_SERVICE_ACCOUNT_FILE))
+    credentials_gcs = service_account.Credentials.from_service_account_info(service_account_info_gcs)
+
+    # https://cloud.google.com/storage/docs/uploading-objects#permissions-client-libraries
+    storage_client = storage.Client(project=PROJECT_ID, credentials=credentials_gcs)
+    bucket = storage_client.bucket(GCS_BUCKET)
+    
+    blob = bucket.blob(destination_blob_name)
+
+    blob.upload_from_filename(source_file_name)
+
+    print(
+        f"File {source_file_name} uploaded to {destination_blob_name}."
+    )
+
+
 
 
 ## Define DAGS
@@ -105,7 +135,7 @@ default_args = {
     'owner': 'kids pkf',
     'start_date': timezone.datetime(2023, 5, 1),
     'email': ['phakawat.fongchai.code@gmail.com'],
-    'email_on_failure': False,
+    'email_on_failure': True,
     'email_on_retry': False,
 }
 
@@ -114,19 +144,26 @@ with DAG(
     default_args=default_args,
     schedule="@daily",
     catchup=False,
+    concurrency=10, 
+    max_active_runs=4,
     tags=["networkrail"]
 ):
     
     start = EmptyOperator(task_id="start")
 
-    extract_movements_from_postgres = BranchPythonOperator(
+    extract_data_from_postgres = BranchPythonOperator(
                 task_id=f"extract_{DATA}_from_postgres",
-                python_callable=_extract_data_from_postgres
+                python_callable=_extract_data_from_postgres,
             )
 
     do_nothing = EmptyOperator(task_id="do_nothing")
 
+    load_data_to_google_cloud_storage = PythonOperator(
+                task_id = f"load_{DATA}_to_gcs",
+                python_callable=_load_data_to_gcs,
+            )
+
     
     # task dependencies
-    start >> extract_movements_from_postgres
-    extract_movements_from_postgres >> do_nothing
+    start >> extract_data_from_postgres >> load_data_to_google_cloud_storage
+    extract_data_from_postgres >> do_nothing
