@@ -1,0 +1,20 @@
+networkrail:
+  target: dbt_kids_networkrail # this is the default target
+  outputs:
+    dbt_kids_networkrail:
+      type: bigquery
+      method: service-account
+      project: networkrail-airflow-dbt
+      dataset: networkrail_airflow
+      keyfile: C:\Users\asus\Desktop\Kids\git\networkrail-airflow-dbt\env_conf\networkrail-airflow-dbt-datamodeling-with-dbt-on-bq.json
+      threads: 1
+      location: asia-southeast1
+  
+    prod:
+      type: bigquery
+      method: service-account
+      project: networkrail-airflow-dbt
+      dataset: networkrail_airflow
+      threads: 1
+      keyfile: YOUR_KEYFILE_PATH
+      location: asia-southeast1
