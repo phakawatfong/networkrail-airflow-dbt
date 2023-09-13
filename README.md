@@ -25,9 +25,6 @@ echo -e "AIRFLOW_UID=$(id -u)" > .env
 docker compose up --build
 ```
 
-### Setup configuration with these files to manage dbt dependencies
-- pyproject.toml
-
 ### Google-Cloud Platform service_account setup
 ** Google Cloud Storage
 custom roles
@@ -60,4 +57,37 @@ add this option to rerun backfill dag
 
 ```
 airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project --reset-dagruns
+```
+
+### Setup configuration with these files to manage dbt dependencies
+- pyproject.toml
+
+run this command to initiate poetry to create virsual environment for our project
+
+```
+poetry install
+```
+
+run this command to the poetry shell, to work under our configured dependencies
+
+```
+poetry shell
+```
+
+run this command to initiate dbt (note to change folder into the dbt folder)
+
+```
+cd dbt
+poetry run dbt init 
+```
+
+## Configure DBT project
+
+- profiles.yml
+
+run this command to setup our dbt project (in this case replace <project_name> with networkrail)
+
+```
+cd <project_name> 
+dbt debug --profiles-dir ..
 ```
