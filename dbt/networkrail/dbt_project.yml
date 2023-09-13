@@ -32,6 +32,13 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   networkrail:
-    # Config indicated by + and applies to all files under models/example/
-    example:
+    staging:
+      networkrail:
+        +materialized: view
+        +schema: staging
+    intermediate:
       +materialized: view
+      +schema: persisted
+    marts:
+      +materialized: view
+      +schema: curated
