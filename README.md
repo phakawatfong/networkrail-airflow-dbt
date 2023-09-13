@@ -90,4 +90,12 @@ run this command to setup our dbt project (in this case replace <project_name> w
 ```
 cd <project_name> 
 dbt debug --profiles-dir ..
+dbt run --profiles-dir ..
+```
+
+
+run this command each time new data model applied.
+
+```
+dbt run --profiles-dir ..
 ```
