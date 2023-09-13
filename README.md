@@ -83,9 +83,14 @@ poetry run dbt init
 
 ## Configure DBT project
 
-- profiles.yml *(to setup dbt project configure)*
-- src.yml *(to setup data source for Data Modeling)*
-- dbt_projects.yml *(to model our project / Data zonning / materialization; VIEW or TABLE will be configured by this file)*
+*(to setup dbt project configure)*
+- profiles.yml 
+
+*(to setup data source for Data Modeling)*
+- src.yml 
+
+*(to model our project / Data zonning / materialization; VIEW or TABLE will be configured by this file)*
+- dbt_projects.yml 
 
 run this command to setup our dbt project (in this case replace <project_name> with **networkrail**)
 
