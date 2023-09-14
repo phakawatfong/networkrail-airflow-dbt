@@ -92,6 +92,12 @@ poetry run dbt init
 *(to model our project / Data zonning / materialization; VIEW or TABLE will be configured by this file)*
 - dbt_projects.yml 
 
+*(to document our model)
+- models.yml
+
+*(to configure project dependencies)*
+- pakages.yml
+
 run this command to setup our dbt project (in this case replace <project_name> with **networkrail**)
 
 ```
@@ -120,3 +126,16 @@ dbt run --profiles-dir ..
 ## Documentation of each field for movements table from Networkrail
 
 [https://wiki.openraildata.com/index.php?title=Train_Movement]
+
+
+to install dbt dependencies on our `packages.yml`
+
+```
+dbt run deps --profiles-dir ..
+```
+
+to see dbt documentation
+```
+dbt docs generate --profiles-dir ..
+dbt docs serve --profiles-dir ..
+```
