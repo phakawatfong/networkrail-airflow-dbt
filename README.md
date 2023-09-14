@@ -53,10 +53,10 @@ I ran this below command, in order to perform backfill while run dags
 airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project
 ```
 
-add this option to rerun backfill dag
+add this option when ***rerun*** backfill dag
 
 ```
-airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project --reset-dagruns
+airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project [--reset-dagruns]
 ```
 
 ### Setup configuration with these files to manage dbt dependencies
