@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: stg_networkrail__movements
+    description: Staging model for Network Rail movement data
+    columns:
+      - name: event_type
+        description: Event type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ARRIVAL', 'DEPARTURE']
+          - dbt_expectations.expect_column_to_exist
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
+      - name: actual_timestamp_utc
+        description: Actual timestamp in UTC
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_to_exist
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: datetime
+      - name: event_source
+        description: Whether the event source was "AUTOMATIC" from SMART, or "MANUAL" from TOPS or TRUST SDR
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['AUTOMATIC', 'MANUAL']
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
+      - name: train_id
+        description: The 10-character unique identity for this train at TRUST activation time
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_to_exist
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
+      - name: variation_status
+        description: One of "ON TIME", "EARLY", "LATE" or "OFF ROUTE"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ON TIME', 'EARLY', 'LATE', 'OFF ROUTE']
+          - dbt_expectations.expect_column_to_exist
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
+      - name: toc_id
+        description: Operating company ID as per TOC Codes
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_to_exist
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
