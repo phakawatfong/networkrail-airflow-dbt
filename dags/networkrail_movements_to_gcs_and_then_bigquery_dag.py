@@ -136,7 +136,28 @@ def _extract_data_from_postgres(**context):
     if check_if_file_exists and lines > 1:
         return f"load_{DATA}_to_gcs"
     else:
-        return "do_nothing"
+        return "delete_empty_file"
+    
+
+def _delete_empty_file(**context):
+
+    ds = context["data_interval_start"].to_date_string()
+
+    absolute_path = f"{DATA_FOLDER}"
+    file_name = f"{DATA}-{ds}.csv"
+
+    # ensure that file contains only header again
+    with open(f"{absolute_path}/{file_name}", 'r') as fp:
+        number_of_lines = len(fp.readlines())
+        print('Total Number of lines:', number_of_lines)
+
+        if number_of_lines == 1:
+            try:
+                os.remove(f"{absolute_path}/{file_name}")
+                print("% s removed successfully" % file_name)
+            except OSError as error:
+                print(error)
+                print(f"{file_name} can not be removed !!")
 
 
 def _load_data_to_gcs(**context):
@@ -177,7 +198,7 @@ def _get_data_from_gcs_then_load_to_bg(**context):
     # https://github.com/googleapis/python-bigquery/blob/35627d145a41d57768f19d4392ef235928e00f72/samples/client_load_partitioned_table.py
     job_config = bigquery.LoadJobConfig(
                 schema = bigquery_schema,
-                write_disposition = bigquery.WriteDisposition.WRITE_APPEND,
+                write_disposition = bigquery.WriteDisposition.WRITE_TRUNCATE,
                 skip_leading_rows=1,
                 source_format=bigquery.SourceFormat.CSV,
                 time_partitioning=bigquery.TimePartitioning(
@@ -187,7 +208,8 @@ def _get_data_from_gcs_then_load_to_bg(**context):
             )
 
     # gs://networkrail_bucket/networkrail-airflow/networkrail/<DATA>.csv
-    table_id = f"{PROJECT_ID}.{BUSINESS_DOMAIN}.{DATA}"
+    partition = ds.replace("-", "")
+    table_id = f"{PROJECT_ID}.{BUSINESS_DOMAIN}.{DATA}${partition}"
     uri = f"gs://{GCS_BUCKET}/{BUSINESS_DOMAIN}/{DATA}/{DATA}-{ds}.csv"
 
     load_job = bigquery_client.load_table_from_uri(
@@ -216,31 +238,36 @@ with DAG(
     schedule="@daily",
     catchup=False,
     concurrency=10, 
-    max_active_runs=4,
+    max_active_runs=10,
     tags=["networkrail"]
 ):
     
     start = EmptyOperator(task_id="start")
 
     extract_data_from_postgres = BranchPythonOperator(
-                task_id=f"extract_{DATA}_from_postgres",
-                python_callable=_extract_data_from_postgres,
+                task_id = f"extract_{DATA}_from_postgres",
+                python_callable = _extract_data_from_postgres,
+            )
+
+    delete_empty_extracted_file = PythonOperator(
+                task_id = f"delete_empty_file",
+                python_callable = _delete_empty_file,
             )
 
     do_nothing = EmptyOperator(task_id="do_nothing")
 
     load_data_to_google_cloud_storage = PythonOperator(
                 task_id = f"load_{DATA}_to_gcs",
-                python_callable=_load_data_to_gcs,
+                python_callable = _load_data_to_gcs,
             )
     
     get_data_from_google_cloud_storage_then_load_to_bigquery = PythonOperator(
                 task_id = f"get_{DATA}_from_google_cloud_storage_thne_load_to_bigquery",
-                python_callable=_get_data_from_gcs_then_load_to_bg,
+                python_callable = _get_data_from_gcs_then_load_to_bg,
     )
 
     end = EmptyOperator(task_id="end", trigger_rule="one_success")
     
     # task dependencies
     start >> extract_data_from_postgres >> load_data_to_google_cloud_storage >> get_data_from_google_cloud_storage_then_load_to_bigquery >> end
-    extract_data_from_postgres >> do_nothing >> end
+    extract_data_from_postgres >> delete_empty_extracted_file >>  do_nothing >> end
