@@ -68,7 +68,7 @@ run this command to initiate poetry to create virsual environment for our projec
 poetry install
 ```
 
-run this command to the poetry shell, to work under our configured dependencies
+run this command to the poetry shell, to work under our configured dependencies (Run this command everytime you start working on a project)
 
 ```
 poetry shell
@@ -116,3 +116,7 @@ run this command each time new data model applied.
 ```
 dbt run --profiles-dir ..
 ```
+
+## Documentation of each field for movements table from Networkrail
+
+[https://wiki.openraildata.com/index.php?title=Train_Movement]
