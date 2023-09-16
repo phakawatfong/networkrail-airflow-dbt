@@ -98,6 +98,11 @@ poetry run dbt init
 *(to configure project dependencies)*
 - pakages.yml
 
+*(to load csv files from dbt project to DataWarehouse)
+
+ref: [https://docs.getdbt.com/docs/build/seeds]
+- seeds.yml [Seeds are best suited to static data which changes infrequently.]
+
 run this command to setup our dbt project (in this case replace <project_name> with **networkrail**)
 
 ```
@@ -135,7 +140,20 @@ dbt run deps --profiles-dir ..
 ```
 
 to see dbt documentation
+
 ```
 dbt docs generate --profiles-dir ..
 dbt docs serve --profiles-dir ..
+```
+
+to run Each Test cases
+
+```
+dbt test --profiles-dir ..
+```
+
+to import csv file from seeds directory
+
+```
+dbt seed --profiles-dir ..
 ```
