@@ -133,10 +133,13 @@ def _extract_data_from_postgres(**context):
     print(f"Check if '{DATA}-{ds}.csv' exists: {check_if_file_exists}")
 
     # if os.path.isfile(f"{DAG_FOLDER}/{DATA}-{ds}.csv") and os.stat(f"{DAG_FOLDER}/{DATA}-{ds}.csv").st_size != 0:
+    # check if our extracted csv file have records, then return to specific task.
     if check_if_file_exists and lines > 1:
         return f"load_{DATA}_to_gcs"
-    else:
+    elif lines == 1:
         return "delete_empty_file"
+    else:
+        return "do_nothing"
     
 
 def _delete_empty_file(**context):
@@ -270,4 +273,5 @@ with DAG(
     
     # task dependencies
     start >> extract_data_from_postgres >> load_data_to_google_cloud_storage >> get_data_from_google_cloud_storage_then_load_to_bigquery >> end
-    extract_data_from_postgres >> delete_empty_extracted_file >>  do_nothing >> end
+    extract_data_from_postgres >> delete_empty_extracted_file >> end
+    extract_data_from_postgres >> do_nothing >> end
