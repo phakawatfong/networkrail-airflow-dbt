@@ -2,6 +2,8 @@
 
 ![project overview](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/Project_overview.png)
 
+I built a data pipeline to extract data from a Postgres database and put it in Google Cloud Storage as a Data Lake technology. Following that, an object is created in Google BigQuery for Data Warehouse technology, and comprehensive data modeling is done in DBT  to allow for additional visualization and analytics via Looker Studio. Apache Airflow is used to orchestrate the entire project, and Docker is used for containerization. 
+
 ### Port for each services
 
 Airflow
