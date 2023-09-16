@@ -15,7 +15,7 @@ source as (
         original_loc_stanox,
         DATETIME(planned_timestamp, "Europe/London") as planned_timestamp_utc,
         timetable_variation,
-        original_loc_timestamp,
+        DATETIME(original_loc_timestamp, "Europe/London") as  original_loc_timestamp_utc,
         current_train_id,
         delay_monitoring_point,
         next_report_run_time,
@@ -38,7 +38,7 @@ source as (
         route,
         planned_event_type,
         next_report_stanox,
-        line_ind,
+        line_ind
     from source
 
 )
@@ -53,7 +53,7 @@ source as (
         original_loc_stanox,
         planned_timestamp_utc,
         timetable_variation,
-        original_loc_timestamp,
+        original_loc_timestamp_utc,
         current_train_id,
         delay_monitoring_point,
         next_report_run_time,
@@ -76,7 +76,7 @@ source as (
         route,
         planned_event_type,
         next_report_stanox,
-        line_ind,
+        line_ind
     from renamed_recasted
 
 )
