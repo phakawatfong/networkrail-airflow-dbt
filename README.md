@@ -1,6 +1,6 @@
 # Network Rail 
 
-[project overview](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/Project_overview.png)
+![project overview](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/Project_overview.png)
 
 ### Port for each services
 
