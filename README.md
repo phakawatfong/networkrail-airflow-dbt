@@ -1,5 +1,17 @@
 # This is the data engineering project, I practices to create a pipeline of UK Data Networkrail in order to use data for Monitoring the UK-rail transportation performance.
 
+### Port for each services
+
+Airflow
+```
+localhost:8081
+```
+
+DBT (data built tools)
+```
+localhost:8080
+```
+
 ### prequistitions
 - python3
 - Docker Desktop
