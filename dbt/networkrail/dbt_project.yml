@@ -36,9 +36,9 @@ models:
       networkrail:
         +materialized: view
         +schema: staging
-    intermediate:
+    persisted:
       +materialized: view
       +schema: persisted
-    marts:
+    curated:
       +materialized: view
       +schema: curated
