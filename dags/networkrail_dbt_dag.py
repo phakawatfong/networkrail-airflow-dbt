@@ -13,7 +13,7 @@ default_args = {
 
 networkrail_dbt_dag = DbtDag(
     dag_id="networkrail_dbt_dag",
-    schedule_interval="@hourly",
+    schedule_interval="@daily",
     default_args=default_args,
     conn_id="networkrail_dbt_bigquery_conn",
     catchup=False,
