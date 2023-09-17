@@ -10,7 +10,8 @@ with pst_networkrail_movements AS (
             event_source,
             train_id,
             variation_status,
-            toc_id
+            toc_id,
+            company_name
     FROM pst_networkrail_movements
 )
 
