@@ -3,7 +3,6 @@ with
         
         SELECT
             event_type,
-            gbtt_timestamp,
             gbtt_timestamp_utc,
             original_loc_stanox,
             planned_timestamp_utc,
@@ -48,7 +47,6 @@ with
 
          SELECT
             event_type,
-            gbtt_timestamp,
             gbtt_timestamp_utc,
             original_loc_stanox,
             planned_timestamp_utc,

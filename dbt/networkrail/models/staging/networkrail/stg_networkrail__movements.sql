@@ -10,7 +10,6 @@ source as (
 
     select 
         event_type,
-        gbtt_timestamp,
         DATETIME(gbtt_timestamp, "Europe/London") as gbtt_timestamp_utc,
         original_loc_stanox,
         DATETIME(planned_timestamp, "Europe/London") as planned_timestamp_utc,
@@ -48,7 +47,6 @@ source as (
 
     select
         event_type,
-        gbtt_timestamp,
         gbtt_timestamp_utc,
         original_loc_stanox,
         planned_timestamp_utc,

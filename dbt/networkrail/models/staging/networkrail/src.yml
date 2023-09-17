@@ -11,14 +11,14 @@ sources:
         columns:
           - name: event_type
             description: Event type
-          - name: gbtt_timestamp
-            description: 	The planned GBTT (passenger) date and time that the event was due to happen at this location
+          - name: gbtt_timestamp_utc
+            description: The planned GBTT (passenger) date and time that the event was due to happen at this location (UTC timestamp)
           - name: original_loc_stanox
             description: If the location has been revised, the STANOX of the location in the schedule at activation time
-          - name: original_loc_timestamp
-            description: The planned time associated with the original location
-          - name: planned_timestamp
-            description: The planned date and time that this event was due to happen at this location
+          - name: original_loc_timestamp_utc
+            description: The planned time associated with the original location (UTC timestamp)
+          - name: planned_timestamp_utc
+            description: The planned date and time that this event was due to happen at this location (UTC timestamp)
           - name: timetable_variation
             description: The number of minutes variation from the scheduled time at this location. Off-route reports will contain "0"
           - name: current_train_id
@@ -29,8 +29,8 @@ sources:
             description: The running time to the next location
           - name: reporting_stanox
             description: The STANOX of the location that generated this report. Set to "00000" for manual and off-route reports
-          - name: actual_timestamp
-            description: 	The date and time that this event happened at the location
+          - name: actual_timestamp_utc
+            description: The date and time that this event happened at the location (UTC timestamp)
           - name: correction_ind
             description: Set to "false" if this report is not a correction of a previous report, or "true" if it is
           - name: event_source
