@@ -85,6 +85,10 @@ add this option when ***rerun*** backfill dag
 airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project --reset-dagruns
 ```
 
+### project pipeline to get data from Postgres and insert into Data Warehouse (Google Bigquery)
+
+![project_pipeline](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/networkrail-airflow-dbt-DAG.png)
+
 ## Configuration files for DBT project
 *(to manage project dependencies, such as libraries)*
 - pyproject.toml
@@ -190,5 +194,12 @@ to import csv file from seeds directory
 dbt seed --profiles-dir ..
 ```
 
+### dbt pipeline to Orchestrate data-modeling
+
+![dbt-pipeline](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/dbt-DAG.png)
+
+### dbt data-lineage
+
+![dbt-lineage](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/dbt-lineage.png)
 ## credits
 [https://www.skooldio.com/]
