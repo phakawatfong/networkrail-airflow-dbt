@@ -79,32 +79,12 @@ airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-p
 add this option when ***rerun*** backfill dag
 
 ```
-airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project [--reset-dagruns]
+airflow dags backfill -s 2023-05-24 -e 2023-09-10 networkrail-airflow-dbt-kids-project --reset-dagruns
 ```
 
-### Setup configuration with these files to manage dbt dependencies
+## Configuration files for DBT project
+*(to manage project dependencies, such as libraries)*
 - pyproject.toml
-
-run this command to initiate poetry to create virsual environment for our project
-
-```
-poetry install
-```
-
-run this command to the poetry shell, to work under our configured dependencies (Run this command everytime you start working on a project)
-
-```
-poetry shell
-```
-
-run this command to initiate dbt (note to change folder into the dbt folder)
-
-```
-cd dbt
-poetry run dbt init 
-```
-
-## Configure DBT project
 
 *(to setup dbt project configure)*
 - profiles.yml 
@@ -125,6 +105,25 @@ poetry run dbt init
 
 ref: [https://docs.getdbt.com/docs/build/seeds]
 - seeds.yml [Seeds are best suited to static data which changes infrequently.]
+run this command to initiate poetry to create virsual environment for our project
+
+```
+poetry install
+```
+
+run this command to the poetry shell, to work under our configured dependencies (Run this command everytime you start working on a project)
+
+```
+poetry shell
+```
+
+run this command to initiate dbt (note to change folder into the dbt folder)
+
+```
+cd dbt
+poetry run dbt init 
+```
+
 
 run this command to setup our dbt project (in this case replace <project_name> with **networkrail**)
 
@@ -149,6 +148,13 @@ run this command each time new data model applied.
 
 ```
 dbt run --profiles-dir ..
+```
+
+In case, you want to specify which model that would be executed.
+
+***dbt run --select <full_path_to_model> --profiles-dir ..***
+```
+dbt run --select models/staging/networkrail/stg_networkrail__movements.sql --profiles-dir ..
 ```
 
 ## Documentation of each field for movements table from Networkrail
