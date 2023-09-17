@@ -278,7 +278,7 @@ with DAG(
             )
     
     get_data_from_google_cloud_storage_then_load_to_bigquery = BranchPythonOperator(
-                task_id = f"get_{DATA}_from_google_cloud_storage_thne_load_to_bigquery",
+                task_id = f"get_{DATA}_from_google_cloud_storage_then_load_to_bigquery",
                 python_callable = _get_data_from_gcs_then_load_to_bg,
     )
 
