@@ -27,10 +27,6 @@ DBT (data built tools)
 localhost:8080
 ```
 
-### prequistitions
-- python3
-- Docker Desktop
-
 ### Setup configuration with these files to manage project dependencies
 - .gitignore
 - docker-compose.yaml
