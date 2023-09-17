@@ -189,3 +189,6 @@ to import csv file from seeds directory
 ```
 dbt seed --profiles-dir ..
 ```
+
+## credits
+[https://www.skooldio.com/]
