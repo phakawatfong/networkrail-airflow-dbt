@@ -145,6 +145,7 @@ def _extract_data_from_postgres(**context):
 def _delete_empty_file(**context):
 
     ds = context["data_interval_start"].to_date_string()
+    # ds = '2023-09-10'
 
     absolute_path = f"{DATA_FOLDER}"
     file_name = f"{DATA}-{ds}.csv"
@@ -225,6 +226,18 @@ def _get_data_from_gcs_then_load_to_bg(**context):
     print("Loaded {} rows.".format(destination_table.num_rows))
 
 
+    with open(f"{DATA_FOLDER}/{DATA}-{ds}.csv", 'r') as fp:
+        lines = len(fp.readlines())
+        print('Total Number of lines:', lines)
+
+    # validate to number of inserted records
+    row_exclude_header = lines - 1
+    if row_exclude_header == destination_table.num_rows:
+        return "validate_inserted_rows"
+    else:
+        return "insert_failed"
+
+
 ## Define DAGS
 # https://airflow.apache.org/docs/apache-airflow/1.10.12/tutorial.html
 default_args = {
@@ -264,14 +277,18 @@ with DAG(
                 python_callable = _load_data_to_gcs,
             )
     
-    get_data_from_google_cloud_storage_then_load_to_bigquery = PythonOperator(
+    get_data_from_google_cloud_storage_then_load_to_bigquery = BranchPythonOperator(
                 task_id = f"get_{DATA}_from_google_cloud_storage_thne_load_to_bigquery",
                 python_callable = _get_data_from_gcs_then_load_to_bg,
     )
 
+    validate_inserted_records_between_csv_and_bigquery = EmptyOperator(task_id="validate_inserted_rows")
+    row_diff_between_csv_and_bigquery = EmptyOperator(task_id="insert_failed")
+
     end = EmptyOperator(task_id="end", trigger_rule="one_success")
     
     # task dependencies
-    start >> extract_data_from_postgres >> load_data_to_google_cloud_storage >> get_data_from_google_cloud_storage_then_load_to_bigquery >> end
+    start >> extract_data_from_postgres >> load_data_to_google_cloud_storage >> get_data_from_google_cloud_storage_then_load_to_bigquery >> validate_inserted_records_between_csv_and_bigquery >> end
     extract_data_from_postgres >> delete_empty_extracted_file >> end
     extract_data_from_postgres >> do_nothing >> end
+    get_data_from_google_cloud_storage_then_load_to_bigquery >> row_diff_between_csv_and_bigquery
