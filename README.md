@@ -10,6 +10,8 @@ I built a data pipeline to extract data from a Postgres database and put it in G
 The connections for each service will be configured in ***Airflow Connections*** 
 under credentials authentication of ```google service_account```
 
+![project_connection](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/projects_connection.png)
+
 Postgres - 'networkrail_postgres_conn'
 DBT GCP - 'networkrail_dbt_bigquery_conn'
 
