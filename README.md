@@ -203,4 +203,4 @@ dbt seed --profiles-dir ..
 
 ![dbt-lineage](https://github.com/phakawatfong/networkrail-airflow-dbt/blob/main/pictures/dbt-lineage.png)
 ## credits
-[https://www.skooldio.com/]
+[https://landing.skooldio.com/data-engineering-bootcamp]
