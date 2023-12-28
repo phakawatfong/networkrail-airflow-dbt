@@ -7,7 +7,7 @@ with
 
     select 
         toc_id,
-        company_name    
+        company_name AS company_name 
     from source
 
 )
